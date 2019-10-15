@@ -27,6 +27,8 @@ class Slice
     float focusSpread; 
     float focusLeft;
     float focusRight;
+
+    boolean bNegativeLeft = false;
     
     // the moving angle, set from outside by the encode movement
     float angle;
@@ -54,11 +56,14 @@ class Slice
     STANDBY
   } secondaryStatus = STANDBY;
 
+  // TIME and TIME related stuff
   long startTime;
   long waitTime;
   int N_BLINK = 6;
   long blinkHalfTime = 250;
   int blinkCounter = 0;
+  int TIMETOBESHURETOBEINFOCUS = 1000;
+  int TIMETOMOVEFROMWAITTOSTANDBY = 2000;
    
 
   public:
@@ -70,6 +75,7 @@ class Slice
     void setLight(Adafruit_NeoPixel* strip, int _r, int _g, int _b);
     void update();
 		void setAngle(float _angle);
+    void debug();
     void printStatus();
 
     //void changeFreq(float _freq);

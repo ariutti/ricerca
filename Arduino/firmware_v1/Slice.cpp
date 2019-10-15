@@ -16,7 +16,20 @@ void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread
   maxBrightness = _maxBrightness;
   sine.init(0.5, 0.0);
 
-  /*
+
+  // a fact: the angle coming from outside ranges from 0 to 360 degrees
+  // There's a case in which a slice has its focusLeft and its borderLeft that 
+  // are negative. This means that with this angle range 
+  // we will never enter some of the if code blocks below.
+  //
+  // We should find a way to consider also this eventuality. 
+  if( borderLeft < 0 || focusLeft <0 )
+    bNegativeLeft = true;
+  else
+    bNegativeLeft = false;
+ 
+
+  
   Serial.print("Slice ");
   Serial.print(index);
   Serial.print("] ");
@@ -33,8 +46,10 @@ void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread
   Serial.print(", ");
   Serial.print(focusRight);
   Serial.print("] ");
+  Serial.print(" bNegativeBorder: ");
+  Serial.print(bNegativeLeft);
   Serial.println();
-  */
+  
 }
 
 void Slice::setLight(Adafruit_NeoPixel* _strip, int _r, int _g, int _b)
@@ -54,7 +69,11 @@ void Slice::setLight(Adafruit_NeoPixel* _strip, int _r, int _g, int _b)
 
 void Slice::setAngle(float _angle )
 {
-  angle = _angle;
+  if( bNegativeLeft && _angle-360.0 > borderLeft && _angle - 360.0 < center)
+    angle = _angle - 360.0;
+  else
+    angle = _angle;
+    
   if( angle != prevAngle ) 
   {
   	if(angle > focusLeft && angle <= focusRight)
@@ -64,7 +83,7 @@ void Slice::setAngle(float _angle )
   			mainStatus = ONFOCUS;
         secondaryStatus = WAIT;
         startTime = millis();
-        waitTime = 3000;
+        waitTime = TIMETOBESHURETOBEINFOCUS;
       } 
   	}
   	else if(angle > borderLeft && angle <= borderRight)
@@ -81,8 +100,8 @@ void Slice::setAngle(float _angle )
         secondaryStatus = WAIT;
       }
     }
-    prevAngle = angle;
   }
+  prevAngle = angle;
 }
 
 void Slice::update()
@@ -102,7 +121,7 @@ void Slice::update()
       {
         secondaryStatus = BLINK;
         startTime = millis();
-        waitTime  = 3000; // not useful in the next status
+        waitTime  = TIMETOBESHURETOBEINFOCUS; // not useful in the next status
       }
     }
     else if( secondaryStatus == BLINK )
@@ -129,7 +148,7 @@ void Slice::update()
           blinkCounter = 0;
           secondaryStatus = STAY;
           startTime = millis();
-          waitTime = 5000;
+          waitTime = TIMETOMOVEFROMWAITTOSTANDBY;
           Serial.print("siamo un focus sulla fetta ");
           Serial.print(index);
           Serial.println();
@@ -187,19 +206,67 @@ void Slice::update()
 	}
 }
 
-void Slice::printStatus()
+void Slice::debug()
 {
 	Serial.print("Slice: ");
 	Serial.print(index);
 	Serial.print(", ");
-	Serial.print(mainStatus);
+  Serial.print("\tangle: ");
+  Serial.print( angle );
+	
   Serial.print("\tdistance: ");
   Serial.print(distance);
+
+  printStatus();
+  /*
   Serial.print("\ty: ");
   Serial.print(y);
   Serial.print("\tcenter-borderLeft: ");
   Serial.print( abs(center-borderLeft) );
   Serial.print("\tcenter-focusLeft: ");
   Serial.print( abs(center-focusLeft) );
+  */
 	Serial.println();
+}
+
+void Slice::printStatus()
+{
+  Serial.print(" [");
+  switch( mainStatus ) {
+    case 0:
+      Serial.print( "BEGINNING" );
+      break;
+    case 1:
+      Serial.print( "ONFOCUS" );
+      break;
+    case 2:
+      Serial.print( "ONLOBES" );
+      break;
+    case 3:
+      Serial.print( "OUTISIDE" );
+      break;
+    default:
+      break;
+  }
+
+  Serial.print(" - ");
+  
+  switch( secondaryStatus ) {
+    case 0:
+      Serial.print( "WAIT" );
+      break;
+    case 1:
+      Serial.print( "BLINK" );
+      break;
+    case 2:
+      Serial.print( "STAY" );
+      break;
+    case 3:
+      Serial.print( "STANDBY" );
+      break;
+    default:
+      break;
+  }
+
+  Serial.print(" ] ");
 }
