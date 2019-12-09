@@ -59,7 +59,7 @@ class Slice
   // TIME and TIME related stuff
   long startTime;
   long waitTime;
-  int N_BLINK = 6;
+  int N_BLINK = 3;
   long blinkHalfTime = 250;
   int blinkCounter = 0;
   int TIMETOBESHURETOBEINFOCUS = 1000;

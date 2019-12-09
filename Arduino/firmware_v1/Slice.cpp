@@ -29,7 +29,7 @@ void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread
     bNegativeLeft = false;
  
 
-  
+  /*
   Serial.print("Slice ");
   Serial.print(index);
   Serial.print("] ");
@@ -49,6 +49,7 @@ void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread
   Serial.print(" bNegativeBorder: ");
   Serial.print(bNegativeLeft);
   Serial.println();
+  */
   
 }
 
