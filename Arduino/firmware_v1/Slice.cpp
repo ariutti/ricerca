@@ -1,5 +1,10 @@
 #include "Slice.h"
 
+// 1. index: index of the slice;
+// 2. sliceSize: the width of the slice expressed in degrees;
+// 3. center: absolute center of the slice expressed in degrees;
+// 4. focusSpread: expressed in percentage of the sliceSize;
+// 5. maxBrigthness: expressed in percentage;
 void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread, float _maxBrightness)
 {
   
@@ -27,7 +32,6 @@ void Slice::init(int _index, float _sliceSize, float _center, float _focusSpread
     bNegativeLeft = true;
   else
     bNegativeLeft = false;
- 
 
   /*
   Serial.print("Slice ");
@@ -68,6 +72,8 @@ void Slice::setLight(Adafruit_NeoPixel* _strip, int _r, int _g, int _b)
   */
 }
 
+// this method is called from the main loop
+// and it passes the absolute angle (in degrees) to the slice
 void Slice::setAngle(float _angle )
 {
   if( bNegativeLeft && _angle-360.0 > borderLeft && _angle - 360.0 < center)
@@ -104,6 +110,7 @@ void Slice::setAngle(float _angle )
   }
   prevAngle = angle;
 }
+
 
 void Slice::update()
 {
@@ -150,8 +157,9 @@ void Slice::update()
           secondaryStatus = STAY;
           startTime = millis();
           waitTime = TIMETOMOVEFROMWAITTOSTANDBY;
-          Serial.print("siamo un focus sulla fetta ");
+          //Serial.print("siamo un focus sulla fetta ");
           Serial.print(index);
+          Serial.print(";");
           Serial.println();
         }
       }

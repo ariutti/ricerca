@@ -53,11 +53,30 @@ volatile enum STATE {
 #define TOTALSTEPS 400
 
 // Because magnet suspension harm is not perfectly aligned with the 
-// axix on which the jewtel, the main rotar disc, the Hall effect sensor 
+// axix on which the jewel, the main rotary disc, the Hall effect sensor 
 // and the "snapper" mechanism are aligned to, we need to compensate 
 // for this slight difference in alignements.
 // I'm creating an offset expressed in term of (encoder steps * 4).
-#define STEPOFFSET 19
+// INSTRUCTION:
+// 1. set the stepoffeset to 0
+// 2. uncomment the lines where you print information about the integrator and the new integrator (inside the loop)
+//   if(DEBUG) {
+//    Serial.print( integrator );
+//    Serial.print(" - ");
+//    Serial.print( newIntegrator );
+//    Serial.print(" - ");
+//    Serial.print( angle );
+//    Serial.println();
+//  }
+// 3. then check the number on the first column.
+//    Take note of it when, moving the wheel you are on the "Sviluppo Farmaceutico" (which is RED, index 0)
+// 4. write down this number subtracting it from 400
+//    So you will have the new integral saying 0.0 when you'll be on top of "Sviluppo Farmaceutico"
+#define STEPOFFSET 400-251
+// console ricerca destra:   400-325
+// console ricerca centro:   400-84
+// console ricerca sinistra: 400-251
+
 // While the main integrator is aligned with the actual position of the
 // magned suspension harm, I also need a different integrator which takes
 // into account the rotation due to the step offset.
@@ -90,16 +109,13 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LEDPIN, NEO_GRB + NEO_KHZ800);
 #define RESET 7
 volatile bool bReset = false;
 
-
-
-
 // SLICE STUFF
 #define NSLICES 7
 #include "Slice.h" 
 Slice slices[NSLICES];
 
 // DEBUG STUFF
-#define DEBUG true
+#define DEBUG false
 
 
 // SETUP /////////////////////////////////////////////////////////////
@@ -120,20 +136,32 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(RESET), ISR_RESET, CHANGE);
 
 
-  float sliceSize = 360.0 / NSLICES;
+  float sliceSize = 360.0 / NSLICES; //degree
   for(int i=0; i<NSLICES; i++) 
   {
     float center = i*sliceSize;
-    slices[i].init(i, sliceSize, center, 0.33, MAXBRIGHTNESS);
+    slices[i].init(i, sliceSize, center, 0.60, MAXBRIGHTNESS);
   }
 
-  slices[0].setLight(&pixels, 255,   0,   0); // red
-  slices[1].setLight(&pixels, 0,   255,   0); // green
-  slices[2].setLight(&pixels, 0,     0, 255); // blue
-  slices[3].setLight(&pixels, 255, 255,   0); // yellow
-  slices[4].setLight(&pixels, 255, 0,   255); // purple
-  slices[5].setLight(&pixels,   0, 255, 255); // cyan
-  slices[6].setLight(&pixels, 255, 255, 255); // white
+  if( DEBUG ) {
+    slices[0].setLight(&pixels, 255,   0,   0); // red    // "Sviluppo Farmaceutico"
+    slices[1].setLight(&pixels, 0,   255,   0); // green  // "Ricerca Botanica"
+    slices[2].setLight(&pixels, 0,     0, 255); // blue   // "Ricerca Clinica e Vigilanza"
+    slices[3].setLight(&pixels, 255, 255,   0); // yellow // "Big Data Management"
+    slices[4].setLight(&pixels, 255, 0,   255); // purple // "Ricerca In scienze Metaboliche"
+    slices[5].setLight(&pixels,   0, 255, 255); // cyan   // "Ricerca Storica"
+    slices[6].setLight(&pixels, 255, 255, 255); // white  // "Ricerca di Biologia dei Sistemi"
+  }
+  else
+  {
+    slices[0].setLight(&pixels, 255, 255, 255); // white
+    slices[1].setLight(&pixels, 255, 255, 255); // white
+    slices[2].setLight(&pixels, 255, 255, 255); // white
+    slices[3].setLight(&pixels, 255, 255, 255); // white
+    slices[4].setLight(&pixels, 255, 255, 255); // white
+    slices[5].setLight(&pixels, 255, 255, 255); // white
+    slices[6].setLight(&pixels, 255, 255, 255); // white
+  }
 
   pixels.begin(); // Initialize NeoPixel strip object (REQUIRED)
   pixels.show();  // Initialize all pixels to 'off'
@@ -144,11 +172,11 @@ void setup()
 // LOOP //////////////////////////////////////////////////////////////
 void loop() 
 {
+  // calculate the newIntegrator taking into account the total number of steps and the stepoffset
   newIntegrator = (integrator + STEPOFFSET)%TOTALSTEPS;
-
+  // obtain the absolute angle from the newIntegrator
   angle = (360.0 * newIntegrator ) / TOTALSTEPS;
 
-  /*
   if(DEBUG) {
     Serial.print( integrator );
     Serial.print(" - ");
@@ -156,8 +184,7 @@ void loop()
     Serial.print(" - ");
     Serial.print( angle );
     Serial.println();
-  }
-  */
+  }   
   
   // update angle for each slice only if needed
   if( angle != prevAngle ) {
@@ -165,7 +192,6 @@ void loop()
       slices[i].setAngle( angle );
     prevAngle = angle;
   }
-
   /*
   if(DEBUG) {
     for(int i=0; i<NSLICES; i++) 
@@ -174,7 +200,8 @@ void loop()
         slices[i].debug();
     }
   }
-  */  
+  */
+   
 
   for(int i=0; i<NSLICES; i++) 
   {
@@ -254,7 +281,7 @@ void ISR_RESET()
   }
   else if(!bReset && status==ENC_CCW)
   {
-    // Serial.println(" == CCW RESET MAGNET MARGIN ==================================== ");
+    //Serial.println(" == CCW RESET MAGNET MARGIN ==================================== ");
     integrator = 0;
   }
 }
