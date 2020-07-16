@@ -72,7 +72,7 @@ volatile enum STATE {
 //    Take note of it when, moving the wheel you are on the "Sviluppo Farmaceutico" (which is RED, index 0)
 // 4. write down this number subtracting it from 400
 //    So you will have the new integral saying 0.0 when you'll be on top of "Sviluppo Farmaceutico"
-#define STEPOFFSET 400-251
+#define STEPOFFSET 400-2 //251
 // console ricerca destra:   400-325
 // console ricerca centro:   400-84
 // console ricerca sinistra: 400-251
@@ -140,7 +140,7 @@ void setup()
   for(int i=0; i<NSLICES; i++) 
   {
     float center = i*sliceSize;
-    slices[i].init(i, sliceSize, center, 0.60, MAXBRIGHTNESS);
+    slices[i].init(i, sliceSize, center, 0.70, MAXBRIGHTNESS);
   }
 
   if( DEBUG ) {
